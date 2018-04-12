@@ -1,4 +1,4 @@
-
+--------------------------Funcion 1
 CREATE OR REPLACE FUNCTION calculoVelMax(matricula IN VARCHAR2, tiempo IN TIMESTAMP) RETURN NUMBER
 	IS
        cuantia VARCHAR2(200);
@@ -21,8 +21,7 @@ CREATE OR REPLACE FUNCTION calculoVelMax(matricula IN VARCHAR2, tiempo IN TIMEST
 
 --select calculoVelMax('0935IOA','26/03/11 03:43:32,070000') from dual;
 
-
-
+--------------------------Funcion 2
 CREATE OR REPLACE FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP, tiempo2 IN TIMESTAMP) RETURN NUMBER
 	IS
        cuantia VARCHAR2(200);
@@ -66,10 +65,8 @@ CREATE OR REPLACE FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIM
 	/
 
 --select calculoVelTramo('3295IOE','21/11/11 03:11:06,080000', '21/11/11 03:12:06,080000') from dual;
-
-
-INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:11:06,080000', 'M45', '23', 'ASC', 100);
-INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:12:06,080000', 'M45', '26', 'ASC', 100);
+--INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:11:06,080000', 'M45', '23', 'ASC', 100);
+--INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:12:06,080000', 'M45', '26', 'ASC', 100);
 
 
 
