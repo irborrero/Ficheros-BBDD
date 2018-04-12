@@ -7,12 +7,12 @@ CREATE OR REPLACE FUNCTION calculoVelMax(matricula IN VARCHAR2, tiempo IN TIMEST
     BEGIN
     	select road, km_point, direction, speed into obs.road, obs.km_point, obs.direction, obs.speed from OBSERVATIONS where nPlate = matricula and odatetime = tiempo;
 		select speedlim into velocidadLim from RADARS where road = obs.road and Km_point = obs.km_point and direction = obs.direction;
-		
+
 		cuantia := round(obs.speed-velocidadLim)*10;
 
 		IF cuantia < 0 THEN
 		cuantia := 0;
-		END IF; 
+		END IF;
 
 		RETURN cuantia;
   	END;
@@ -48,14 +48,14 @@ CREATE OR REPLACE FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIM
 
 		IF distancia > 5 THEN
 		velocidadLim := (5*velocidadLim + (distancia-5)*velocidadGeneral)*1/distancia;
-		cuantia := round(velocidadMed-velocidadLim)*10;	
+		cuantia := round(velocidadMed-velocidadLim)*10;
 		ELSE
 		cuantia := round(velocidadMed-velocidadLim)*10;
-		END IF; 
+		END IF;
 
 		IF cuantia < 0 THEN
 		cuantia := 0;
-		END IF; 
+		END IF;
 
 		RETURN cuantia;
   	END;
@@ -100,7 +100,7 @@ CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo
 --INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:15:06,080000', 'M45', '23', 'ASC', 100);
 
 --------------------------Funcion 4
-
+----hola me llamo isa
 CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN NUMBER
   IS
        cuantia VARCHAR2(200);
