@@ -100,29 +100,33 @@ CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo
 --INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:15:06,080000', 'M45', '23', 'ASC', 100);
 
 --------------------------Funcion 4
-----hola me llamo isa
-CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN NUMBER
+
+CREATE OR REPLACE TYPE OBSERVACION
+	AS OBJECT(
+			nPlate     VARCHAR2(7),
+			odatetime  TIMESTAMP,
+			road       VARCHAR2(5),
+			km_point   NUMBER(3),
+			direction  VARCHAR2(3),
+			speed      NUMBER(3)
+		)
+   /
+
+CREATE OR REPLACE FUNCTION ObservacionAnterior(matricula IN VARCHAR2, tiempo IN TIMESTAMP) RETURN OBSERVACION
   IS
-       cuantia VARCHAR2(200);
-       tiempoLapso NUMBER(10);
-       tiempoCocheDelante TIMESTAMP;
-       obs1 OBSERVATIONS%ROWTYPE;
+       obsAnterior OBSERVACION;
+			 tiempoAnterior TIMESTAMP;
+			 matriculaAnterior VARCHAR2(7);
+			 obs1 OBSERVATIONS%ROWTYPE;
 
     BEGIN
-      select road, km_point, direction, speed, odatetime into obs1.road, obs1.km_point, obs1.direction, obs1.speed , obs1.odatetime from OBSERVATIONS where nPlate = matricula and odatetime = tiempo1;
+			obsAnterior := OBSERVACION(NULL, NULL, NULL, NULL, NULL, NULL);
+			select road, km_point, direction into obs1.road, obs1.km_point, obs1.direction from OBSERVATIONS where nPlate = matricula and odatetime = tiempo;
+			select  max(odatetime) into obsAnterior.odatetime from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < tiempo;
+      select  nPlate, road, km_point, direction, speed into  obsAnterior.nPlate, obsAnterior.road, obsAnterior.km_point, obsAnterior.direction, obsAnterior.speed from OBSERVATIONS where odatetime = obsAnterior.odatetime and road= obs1.road and km_point=obs1.km_point and direction= obs1.direction;
 
-      select max(odatetime) into tiempoCocheDelante from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < obs1.odatetime;
-
-    tiempoLapso := (extract(hour from obs1.odatetime)-extract(hour from tiempoCocheDelante))*3600000+ (extract(minute from obs1.odatetime)-extract(minute from tiempoCocheDelante))*60000+ (extract(second from obs1.odatetime)-extract(second from tiempoCocheDelante))*1000;
-    tiempoLapso := (round(tiempoLapso/100))*100;
-
-    cuantia := (3.6 - tiempoLapso/1000)*100*10;
-
-    IF
-    cuantia < 0 THEN
-    cuantia := 0;
-    END IF;
-
-    RETURN cuantia;
+  	RETURN obsAnterior;
     END;
   /
+
+	--select ObservacionAnterior('3295IOE','21/11/11 03:15:06,080000') from dual;
