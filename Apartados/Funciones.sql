@@ -128,3 +128,22 @@ CREATE OR REPLACE FUNCTION ObservacionAnterior(matricula IN VARCHAR2, tiempo IN 
   /
 
 	--select ObservacionAnterior('3295IOE','21/11/11 03:15:06,080000') from dual;
+
+	--------------------------Funcion 5
+
+	CREATE OR REPLACE FUNCTION ObservacionCocheAnterior(matricula IN VARCHAR2, tiempo IN TIMESTAMP) RETURN OBSERVACION
+	  IS
+	       obsAnterior OBSERVACION;
+				 obs1 OBSERVATIONS%ROWTYPE;
+
+	    BEGIN
+				obsAnterior := OBSERVACION(NULL, NULL, NULL, NULL, NULL, NULL);
+				--select road, km_point, direction into obs1.road, obs1.km_point, obs1.direction from OBSERVATIONS where nPlate = matricula and odatetime = tiempo;
+				select  max(odatetime) into obsAnterior.odatetime from OBSERVATIONS where odatetime < tiempo and nPlate=matricula;
+	      select  nPlate, road, km_point, direction, speed into obsAnterior.nPlate, obsAnterior.road, obsAnterior.km_point, obsAnterior.direction, obsAnterior.speed from OBSERVATIONS where odatetime = obsAnterior.odatetime and nPlate=matricula;
+
+	  	RETURN obsAnterior;
+	    END;
+	  /
+		--INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:15:05,100000', 'A5', '258', 'ASC', 93);
+		--select ObservacionCocheAnterior('3295IOE','21/11/11 03:15:06,080000') from dual;
