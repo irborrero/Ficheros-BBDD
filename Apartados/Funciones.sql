@@ -67,22 +67,26 @@ CREATE OR REPLACE FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIM
 
 
 --------------------------Funcion 3
-CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN TIMESTAMP
+CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN NUMBER
 	IS
        cuantia VARCHAR2(200);
+       tiempoLapso NUMBER(10);
        tiempoCocheDelante TIMESTAMP;
        obs1 OBSERVATIONS%ROWTYPE;
 
     BEGIN
     	select road, km_point, direction, speed, odatetime into obs1.road, obs1.km_point, obs1.direction, obs1.speed , obs1.odatetime from OBSERVATIONS where nPlate = matricula and odatetime = tiempo1;
 
-    	select distinct max(odatetime) into tiempoCocheDelante from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < obs1.odatetime group by odatetime having count(*)<=1;
+    	select max(odatetime) into tiempoCocheDelante from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < obs1.odatetime;
 
-		RETURN tiempoCocheDelante;
+		tiempoLapso := (extract(hour from obs1.odatetime)-extract(hour from tiempoCocheDelante))*3600+ (extract(minute from obs1.odatetime)-extract(minute from tiempoCocheDelante))*60+ (extract(second from obs1.odatetime)-extract(second from tiempoCocheDelante))*1000;
+
+		RETURN tiempoLapso;
   	END;
 	/
 
 --select calculoSancionDistancia('3295IOE','21/11/11 03:12:06,080000') from dual;
+    	select max(odatetime) from OBSERVATIONS where road = 'M45' and km_point = 26 and direction = 'ASC' and odatetime < '21/11/11 03:12:06,080000';
 
 
 
