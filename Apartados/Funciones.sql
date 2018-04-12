@@ -46,15 +46,12 @@ CREATE OR REPLACE FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIM
 
 		velocidadMed := (distancia/tiempoTramo)*3600;
 
-
-
 		IF distancia > 5 THEN
 		velocidadLim := (5*velocidadLim + (distancia-5)*velocidadGeneral)*1/distancia;
 		cuantia := round(velocidadMed-velocidadLim)*10;	
 		ELSE
 		cuantia := round(velocidadMed-velocidadLim)*10;
 		END IF; 
-
 
 		IF cuantia < 0 THEN
 		cuantia := 0;
@@ -68,6 +65,24 @@ CREATE OR REPLACE FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIM
 --INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:11:06,080000', 'M45', '23', 'ASC', 100);
 --INSERT INTO OBSERVATIONS VALUES('3295IOE', '21/11/11 03:12:06,080000', 'M45', '26', 'ASC', 100);
 
+
+--------------------------Funcion 3
+CREATE OR REPLACE FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN TIMESTAMP
+	IS
+       cuantia VARCHAR2(200);
+       tiempoCocheDelante TIMESTAMP;
+       obs1 OBSERVATIONS%ROWTYPE;
+
+    BEGIN
+    	select road, km_point, direction, speed, odatetime into obs1.road, obs1.km_point, obs1.direction, obs1.speed , obs1.odatetime from OBSERVATIONS where nPlate = matricula and odatetime = tiempo1;
+
+    	select distinct max(odatetime) into tiempoCocheDelante from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < obs1.odatetime group by odatetime having count(*)<=1;
+
+		RETURN tiempoCocheDelante;
+  	END;
+	/
+
+--select calculoSancionDistancia('3295IOE','21/11/11 03:12:06,080000') from dual;
 
 
 
