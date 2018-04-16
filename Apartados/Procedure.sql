@@ -1,4 +1,10 @@
-CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) AS
+CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) IS
+
+  cursor cursor1 is
+    SELECT nPlate,odatetime
+    FROM OBSERVATIONS
+    WHERE TRUNC(odatetime) = TO_DATE(fecha, 'YYYY-MM-DD');
+
   amountVelMax NUMBER(3);
   amountVelTramo NUMBER(3);
   amountDist NUMBER(3);
@@ -7,51 +13,69 @@ CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) AS
 
     BEGIN
 
-    FOR cursor1 IN (SELECT * FROM OBSERVATIONS WHERE to_char(odatetime,'MM-DD-YYYY') = to_char(fecha,'MM-DD-YYYY'))
-      
-      LOOP
-        BEGIN
+      FOR obs in cursor1 
+        LOOP
           
-          DBMS_OUTPUT.PUT_LINE('odatetime: '||to_char(cursor1.odatetime,'MM-DD-YYYY'));
+          DBMS_OUTPUT.PUT_LINE('odatetime: '||to_char(obs.odatetime,'MM-DD-YYYY'));
 
+          obsAnterior := paquete.ObservacionAnterior(obs.nPlate, obs.odatetime);
+          select owner into dueno from vehicles where nPlate = obs.nPlate;
 
-          obsAnterior := paquete.ObservacionAnterior(cursor1.nPlate, cursor1.odatetime);
-          select owner into dueno from vehicles where nPlate = cursor1.nPlate;
+          DBMS_OUTPUT.PUT_LINE(obs.nPlate);
+          DBMS_OUTPUT.PUT_LINE(obs.odatetime);
 
-          DBMS_OUTPUT.PUT_LINE(cursor1.nPlate);
-          DBMS_OUTPUT.PUT_LINE(cursor1.odatetime);
+          amountVelMax := paquete.calculoVelMax(obs.nPlate, obs.odatetime);
 
-          amountVelMax := paquete.calculoVelMax(cursor1.nPlate, cursor1.odatetime);
-
-          amountVelTramo := paquete.calculoVelTramo(cursor1.nPlate, obsAnterior.odatetime, cursor1.odatetime);
+          amountVelTramo := paquete.calculoVelTramo(obs.nPlate, obsAnterior.odatetime, obs.odatetime);
           DBMS_OUTPUT.PUT_LINE('VEL: '||amountVelTramo);
 
-          amountDist := paquete.calculoSancionDistancia(cursor1.nplate, cursor1.odatetime);
+          amountDist := paquete.calculoSancionDistancia(obs.nplate, obs.odatetime);
 
+        --INSERCION EN TABLA TICKETS
         IF amountVelMax > 0
         THEN
         DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Max...');
-        INSERT INTO TICKETS VALUES(cursor1.nPlate,cursor1.odatetime,'S',NULL,NULL,SYSDATE,NULL,NULL,amountVelMax,dueno, 'R');
+        INSERT INTO TICKETS VALUES(obs.nPlate,obs.odatetime,'S',NULL,NULL,SYSDATE,NULL,NULL,amountVelMax,dueno, 'R');
         END IF;
 
         IF amountvelTramo > 0
         THEN
         DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Tramo...');
-        INSERT INTO TICKETS VALUES(cursor1.nPlate,obsAnterior.odatetime,'T',cursor1.nPlate,cursor1.odatetime,SYSDATE,NULL,NULL,amountVelTramo,dueno, 'R');
+        INSERT INTO TICKETS VALUES(obs.nPlate,obsAnterior.odatetime,'T',obs.nPlate,obs.odatetime,SYSDATE,NULL,NULL,amountVelTramo,dueno, 'R');
         END IF;
 
         IF amountDist > 0
         THEN
         DBMS_OUTPUT.PUT_LINE('Insertando ticket por distancia...');
-        INSERT INTO TICKETS VALUES(cursor1.nPlate,cursor1.odatetime,'D',obsAnterior.nPlate,obsAnterior.odatetime,SYSDATE,NULL,NULL,amountDist,dueno, 'R');
+        INSERT INTO TICKETS VALUES(obs.nPlate,obs.odatetime,'D',obsAnterior.nPlate,obsAnterior.odatetime,SYSDATE,NULL,NULL,amountDist,dueno, 'R');
         END IF;
-
-        END;
 
       END LOOP;
 
     END;
 /
+
+
+CREATE OR REPLACE PROCEDURE PRUEBA(fecha DATE) IS
+
+  cursor c1 is
+     SELECT nPlate,speed
+     FROM OBSERVATIONS
+     WHERE TRUNC(odatetime) = TO_DATE(fecha, 'DD-MM-YYYY');
+
+  BEGIN
+
+  DBMS_OUTPUT.PUT_LINE(TO_DATE(fecha, 'DD-MM-YYYY'));
+
+  FOR obs in c1
+   
+   LOOP
+      INSERT INTO PRUEBA2 VALUES (obs.nplate, obs.speed);
+   END LOOP;
+
+  END;
+/
+
 
 -- call sancionespordia('');
 --  EXEC SANCIONESPORDIA('23/10/11');
