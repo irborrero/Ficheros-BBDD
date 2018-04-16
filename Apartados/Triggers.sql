@@ -1,3 +1,7 @@
+-- todo
+-- trigger A sin after statement
+-- trigger D radares controlar update
+
 
 ------------------------------- TRIGGER A ----------------------------------
 ----------- INSERCIÓN DE MULTA

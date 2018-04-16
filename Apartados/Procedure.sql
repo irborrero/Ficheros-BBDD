@@ -7,18 +7,26 @@ CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) AS
 
     BEGIN
 
-    FOR cursor1 IN (SELECT * FROM OBSERVATIONS WHERE CAST(odatetime AS DATE) = fecha)
+    FOR cursor1 IN (SELECT * FROM OBSERVATIONS WHERE to_char(odatetime,'MM-DD-YYYY') = to_char(fecha,'MM-DD-YYYY'))
+      
       LOOP
+        BEGIN
+          
+          DBMS_OUTPUT.PUT_LINE('odatetime: '||to_char(cursor1.odatetime,'MM-DD-YYYY'));
+
+
           obsAnterior := paquete.ObservacionAnterior(cursor1.nPlate, cursor1.odatetime);
           select owner into dueno from vehicles where nPlate = cursor1.nPlate;
 
-          amountVelMax := calculoVelMax(cursor1.nPlate, cursor1.odatetime);
-          amountVelTramo := calculoVelTramo(cursor1.nPlate, obsAnterior.odatetime, cursor1.odatetime);
-          amountDist := calculoSancionDistancia(cursor1.nplate, cursor1.odatetime);
-          DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Max...');
-          DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Max...');
-          DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Max...');
+          DBMS_OUTPUT.PUT_LINE(cursor1.nPlate);
+          DBMS_OUTPUT.PUT_LINE(cursor1.odatetime);
 
+          amountVelMax := paquete.calculoVelMax(cursor1.nPlate, cursor1.odatetime);
+
+          amountVelTramo := paquete.calculoVelTramo(cursor1.nPlate, obsAnterior.odatetime, cursor1.odatetime);
+          DBMS_OUTPUT.PUT_LINE('VEL: '||amountVelTramo);
+
+          amountDist := paquete.calculoSancionDistancia(cursor1.nplate, cursor1.odatetime);
 
         IF amountVelMax > 0
         THEN
@@ -37,13 +45,16 @@ CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) AS
         DBMS_OUTPUT.PUT_LINE('Insertando ticket por distancia...');
         INSERT INTO TICKETS VALUES(cursor1.nPlate,cursor1.odatetime,'D',obsAnterior.nPlate,obsAnterior.odatetime,SYSDATE,NULL,NULL,amountDist,dueno, 'R');
         END IF;
-        commit;
+
+        END;
 
       END LOOP;
+
     END;
 /
 
 -- call sancionespordia('');
+--  EXEC SANCIONESPORDIA('23/10/11');
 multa por velMax
 insert into OBSERVATIONS values ('0861EUI','23/10/11 15:56:27,300000','M45',10,'ASC',160);
 
