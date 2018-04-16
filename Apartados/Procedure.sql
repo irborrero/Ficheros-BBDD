@@ -3,15 +3,16 @@ CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) IS
   cursor cursor1 is
     SELECT nPlate,odatetime
     FROM OBSERVATIONS
-    WHERE TRUNC(odatetime) = TO_DATE(fecha, 'YYYY-MM-DD');
+    WHERE TRUNC(odatetime) like TO_DATE(fecha, 'DD-MM-YYYY');
 
-  amountVelMax NUMBER(3);
-  amountVelTramo NUMBER(3);
-  amountDist NUMBER(3);
+  amountVelMax NUMBER;
+  amountVelTramo NUMBER;
+  amountDist NUMBER;
   dueno VARCHAR(9);
   obsAnterior OBSERVACION;
 
     BEGIN
+        obsAnterior := OBSERVACION(NULL, NULL, NULL, NULL, NULL, NULL);
 
       FOR obs in cursor1 
         LOOP
@@ -19,18 +20,23 @@ CREATE OR REPLACE PROCEDURE sancionesPorDia(fecha DATE) IS
           DBMS_OUTPUT.PUT_LINE('odatetime: '||to_char(obs.odatetime,'MM-DD-YYYY'));
 
           obsAnterior := paquete.ObservacionAnterior(obs.nPlate, obs.odatetime);
+          DBMS_OUTPUT.PUT_LINE('VELmAX: '||obsAnterior.nPlate);
+
           select owner into dueno from vehicles where nPlate = obs.nPlate;
 
           DBMS_OUTPUT.PUT_LINE(obs.nPlate);
           DBMS_OUTPUT.PUT_LINE(obs.odatetime);
 
           amountVelMax := paquete.calculoVelMax(obs.nPlate, obs.odatetime);
+          DBMS_OUTPUT.PUT_LINE('VELmAX: '||amountVelMax);
 
-          amountVelTramo := paquete.calculoVelTramo(obs.nPlate, obsAnterior.odatetime, obs.odatetime);
+          amountVelTramo := paquete.calculoVelTramo(obs.nPlate,obs.odatetime);
           DBMS_OUTPUT.PUT_LINE('VEL: '||amountVelTramo);
 
-          amountDist := paquete.calculoSancionDistancia(obs.nplate, obs.odatetime);
+          DBMS_OUTPUT.PUT_LINE('HOLA PASO POR AQUI ');
 
+          --amountDist := paquete.calculoSancionDistancia(obs.nplate, obs.odatetime);
+          --DBMS_OUTPUT.PUT_LINE('DISTANCITA: '||amountDist);
         --INSERCION EN TABLA TICKETS
         IF amountVelMax > 0
         THEN
@@ -61,7 +67,7 @@ CREATE OR REPLACE PROCEDURE PRUEBA(fecha DATE) IS
   cursor c1 is
      SELECT nPlate,speed
      FROM OBSERVATIONS
-     WHERE TRUNC(odatetime) = TO_DATE(fecha, 'DD-MM-YYYY');
+     WHERE TRUNC(odatetime) like TO_DATE(fecha, 'DD-MM-YYYY');
 
   BEGIN
 
