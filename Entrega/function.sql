@@ -51,7 +51,7 @@ CREATE OR REPLACE TYPE OBSERVACION
 					------------- FUNCION 2 --------------------------------
 					FUNCTION calculoVelTramo(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN NUMBER
 								IS
-					      cuantia VARCHAR2(200);
+					      cuantia NUMBER;
 					      velocidadLim NUMBER;
 					      velocidadMed NUMBER;
 					      tiempoTramo NUMBER;
@@ -61,30 +61,35 @@ CREATE OR REPLACE TYPE OBSERVACION
 					      obs1 OBSERVATIONS%ROWTYPE;
 					      obs2 OBSERVATIONS%ROWTYPE;
 					    BEGIN
+
 					    	select road, km_point, direction, speed into obs1.road, obs1.km_point, obs1.direction, obs1.speed from OBSERVATIONS where nPlate = matricula and odatetime = tiempo1;
-					    	select MAX(odatetime) into tiempo2 from OBSERVATIONS where nPlate = matricula and odatetime < tiempo1 and road = obs1.road and DIRECTION = obs1.direction;
-					    	select km_point, odatetime,road,direction into obs2.km_point, obs2.odatetime, obs2.road, obs2.direction from OBSERVATIONS where nPlate = matricula and odatetime = tiempo2;
-
+								------ seleccionamos la observacion inmediatamente anterior a ese vehiculo
+								select MAX(odatetime) into tiempo2 from OBSERVATIONS where nPlate = matricula and odatetime < tiempo1 and road = obs1.road and DIRECTION = obs1.direction;
+								----- obtenemos el resto de datos necesarios para la observacion anterior
+								select km_point, odatetime,road,direction into obs2.km_point, obs2.odatetime, obs2.road, obs2.direction from OBSERVATIONS where nPlate = matricula and odatetime = tiempo2;
+								----- escogemos la velocidad del radar asociado a la observacion inmediatamente antior
 					    	select speedlim into velocidadLim from RADARS where road = obs2.road and Km_point = obs2.km_point and direction = obs2.direction;
-					    	select speed_limit into velocidadGeneral from ROADS where name = obs1.road;
-
-							select speedlim into velocidadLim from RADARS where road = obs1.road and Km_point = obs1.km_point and direction = obs1.direction;
-
+								---- escogemos la velocidad de la carreterea asociada de la carretera
+								select speed_limit into velocidadGeneral from ROADS where name = obs1.road;
+								----- escogemos la velocidad del radar asociado a la observacion actual
+								select speedlim into velocidadLim from RADARS where road = obs1.road and Km_point = obs1.km_point and direction = obs1.direction;
+							--- calculamos la distancia entre los radares
 							distancia := ABS(obs2.Km_point - obs1.km_point);
+							--- calculamos el tiempo que ha transcurrido entre las observaciones
+						  tiempoTramo := ABS((extract(hour from obs2.odatetime)-extract(hour from tiempo1))*3600+ (extract(minute from obs2.odatetime)-extract(minute from tiempo1))*60+ (extract(second from obs2.odatetime)-extract(second from tiempo1))*1000);
+							--- calculamos la velocidad a la que ha ido el coche de media con los parametros calculados previamente
+							velocidadMed := (distancia/(tiempoTramo/(3600*1000)));
 
-						  	tiempoTramo := (extract(hour from obs2.odatetime)-extract(hour from tiempo1))*3600+ (extract(minute from obs2.odatetime)-extract(minute from tiempo1))*60+ (extract(second from obs2.odatetime)-extract(second from tiempo1))*1000;
-
-							velocidadMed := (distancia/(-tiempoTramo/(3600*1000)));
-
-							DBMS_OUTPUT.PUT_LINE('velocidadMed: '||velocidadMed);
-
+							---- si la distancia es mayor que 5 entre las observaciones entonces hemos de tener en cuenta la restricción del radar y la velocidad general de la carretera
 							IF distancia > 5 THEN
 								velocidadLim := (5*velocidadLim + (distancia-5)*velocidadGeneral)*1/distancia;
 								cuantia := round(velocidadMed-velocidadLim)*10;
 							ELSE
+								--- si no solo contamos con la velocidad propia del radar
 								cuantia := round(velocidadMed-velocidadLim)*10;
 							END IF;
 
+							-- si el coche va más despacio que la velocidad permitida la cuantía es nula
 							IF cuantia < 0 THEN
 								cuantia := 0;
 							END IF;
