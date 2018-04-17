@@ -16,6 +16,12 @@ SELECT road, km_point
 SELECT name,speed_limit FROM ROADS ORDER BY speed_limit DESC, name;
 
 
+--
+
+select ROAD, (MAX(speed_limit)*(2*max(finalmax)-sum(distTramo)) + sum(velTramo) )/(2*MAX(finalmax)) as VELOCIDADMEDIA from
+((Select sum(abs(final - km_point)) as distTramo, (sum(abs(final - km_point)) * speedlim) as velTramo, max(final) as finalmax, MAX(road) AS ROAD from Tramos group by ROAD,speedlim) 
+	TRAMOS JOIN ROADS R on R.name = TRAMOS.road) GROUP BY ROAD ORDER BY velocidadmedia DESC, road;
+
 -------------------------Consulta 3: dueños que no son conductores habituales
 
 --INSERT INTO ASSIGNMENTS values ('78455829T', '5862IOU');
