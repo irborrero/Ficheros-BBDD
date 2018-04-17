@@ -1,5 +1,6 @@
 
----------- vista elegida como obligatoria: TRAMOS
+---------- VISTA OBLIGATORIA ---------------------------------------------------------
+-- C) TRAMOS
     CREATE VIEW TRAMOS AS
       SELECT ROAD, KM_POINT,
         CASE
@@ -20,4 +21,17 @@
         select  sum (velTramoPond) /sum(distTramo) from
         (Select sum(abs(final - km_point)) as distTramo, (sum(abs(final - km_point)) * speedlim) as velTramoPond from Tramos where road = 'A5' group by speedlim);
 
-      
+
+------------------ VISTAS OPCIONALES
+
+-- A) NUEVA MULTA
+CREATE VIEW NuevaMulta AS
+  SELECT nPlate, odatetime, speed_limit - speed as diferencia from ROADS R INNER JOIN OBSERVATIONS O
+    ON R.name=O.road
+      WHERE R.speed_limit/2 > O.speed;
+
+-- B) PROTESTON
+CREATE VIEW Proteston AS
+SELECT PROTESTON FROM (
+  SELECT new_debtor as proteston, count (*) cuenta from allegations where status like 'R'
+    GROUP BY new_debtor ORDER BY count(*) DESC) WHERE ROWNUM = 1;
