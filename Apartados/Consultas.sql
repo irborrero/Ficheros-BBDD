@@ -6,26 +6,24 @@ SELECT nPlate, repeticiones FROM (SELECT count(nPlate) repeticiones, nPlate FROM
 
  --Tramos: tabla que registra cada tramo de carretera en el que la velocidad es inferior a la velocidad general de la vía (contiene la identificación de la vía, puntos de inicio y fin, y límite de velocidad en el tramo).
 
-SELECT road, km_point
-
-  CASE (km_point + 5 < siguiente_radar) THEN
-
-  END km_final, speedlim
-
-  FROM RADARS A JOIN ROADS B ON A.road= B.name;
-SELECT name,speed_limit FROM ROADS ORDER BY speed_limit DESC, name;
-
-
---
-
 select ROAD, (MAX(speed_limit)*(2*max(finalmax)-sum(distTramo)) + sum(velTramo) )/(2*MAX(finalmax)) as VELOCIDADMEDIA from
-((Select sum(abs(final - km_point)) as distTramo, (sum(abs(final - km_point)) * speedlim) as velTramo, max(final) as finalmax, MAX(road) AS ROAD from Tramos group by ROAD,speedlim) 
+((Select sum(abs(final - km_point)) as distTramo, (sum(abs(final - km_point)) * speedlim) as velTramo, max(final) as finalmax, MAX(road) AS ROAD from Tramos group by ROAD,speedlim)
 	TRAMOS JOIN ROADS R on R.name = TRAMOS.road) GROUP BY ROAD ORDER BY velocidadmedia DESC, road;
 
 -------------------------Consulta 3: dueños que no son conductores habituales
 
 --INSERT INTO ASSIGNMENTS values ('78455829T', '5862IOU');
 --INSERT INTO ASSIGNMENTS values ('33254360V', '5862IOU');
+SELECT DISTINCT DRIVER FROM (
+  SELECT * FROM assignments UNION SELECT reg_driver, nplate FROM vehicles
+   MINUS Select owner, nplate FROM vehicles);
+
+   ---------- CON LA TABLA TAL CUAL NOS LA DA LA PROFE
+   --107 ROWS SELECTED (son dueños que no son conductores habituales con un total de 197 dueños distintos)
+   ---------- PRUEBAS QUE HEMOS HECHO NOSOTROS
+    -- COCHE: '5862IOU' -- DUEÑO: 78455829T -- CONDUCTOR HABITUAL: 36071957E
+    --INSERT INTO ASSIGNMENTS values ('78455829T', '5862IOU');
+    --(insertamos el dueño como conductor no habitual)
  select count(*)coches,driver from (select driver, nplate from assignments UNION select reg_driver, nplate from vehicles MINUS select owner, nplate from vehicles)group by driver having count(*)>=3;
 
 
