@@ -1,7 +1,3 @@
--- todo
--- trigger A sin after statement
--- trigger D radares controlar update
-
 
 ------------------------------- TRIGGER A ----------------------------------
 ----------- INSERCIÓN DE MULTA
@@ -81,31 +77,61 @@ END InsertarMulta;
 
 --------------------------------- TRIGGER B----------------------------------------
 ---------- Si el nuevo deudor no es conductor asignado
+--- trigger a falta de revisión
 
-CREATE OR REPLACE TRIGGER ProcesarAlegacion
-BEFORE INSERT on ALLEGATIONS
-	FOR EACH ROW
-	DECLARE
-		c NUMBER;
-		deudor VARCHAR(9);
-		BEGIN
-			select count(*) into c from assignments where driver = :NEW.new_debtor and nPlate = :NEW.obs_veh;
-			select debtor into deudor from tickets where obs1_veh = :NEW.obs_veh and obs1_date =:NEW.obs_date and tik_type= :NEW.tik_type;
+CREATE OR REPLACE TYPE ALEGACION
+	AS OBJECT(
+		obs_veh    VARCHAR2(7),
+    obs_date   TIMESTAMP,
+    tik_type   VARCHAR2(9),
+    reg_date   DATE,
+    new_debtor VARCHAR2(9),
+    status     VARCHAR2(1),
+    exec_date  DATE
+		)
+   /
 
-			IF c = 0 THEN
-			----- El nuevo deudor no es conductor del coche
-				:NEW.status := 'R';
-				:NEW.exec_date := SYSDATE;
+	CREATE OR REPLACE TRIGGER ProcesarAlegacion
+	 BEFORE INSERT on ALLEGATIONS
+			FOR EACH ROW
+			DECLARE
+				alegacionInsertada ALEGACION;
+				c1 NUMBER;
+				c2 NUMBER;
 
-			ELSE
-			---- Vemos si el nuevo deudor ya ha podido alegar esa misma multa
-				IF deudor NOT LIKE :NEW.new_debtor THEN
-						:NEW.status := 'A';
-						:NEW.exec_date := SYSDATE;
-				END IF;
-			END IF;
-	END;
-	/
+			BEGIN
+				alegacionInsertada := ALEGACION(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+				alegacionInsertada.new_debtor := :NEW.new_debtor;
+				alegacionInsertada.obs_veh := :NEW.obs_veh;
+				alegacionInsertada.obs_date := :NEW.obs_date;
+				alegacionInsertada.tik_type := :NEW.tik_type;
+				alegacionInsertada.reg_date := :NEW.reg_date;
+
+				select count(*) into c1 from assignments where driver = alegacionInsertada.new_debtor and nPlate = alegacionInsertada.obs_veh;
+				--select debtor into deudor from tickets where obs1_veh = :NEW.obs_veh and obs1_date =:NEW.obs_date and tik_type= :NEW.tik_type;
+				select count(*) into c2 from allegations where obs_veh = alegacionInsertada.obs_veh and obs_date = alegacionInsertada.obs_date and tik_type = alegacionInsertada.tik_type and new_debtor = alegacionInsertada.new_debtor;
+
+				DBMS_OUTPUT.PUT_LINE(c1 || '-' || c2);
+
+				IF c1 = 0 THEN
+				-- El nuevo deudor no es conductor del coche
+					:NEW.status := 'R';
+					:NEW.exec_date := SYSDATE;
+
+				ELSE
+				---- Vemos si el nuevo deudor ya ha podido alegar esa multa
+					IF c2 = 0 THEN
+							--No ha alegado esa multa previamente
+							:NEW.status := 'A';
+							:NEW.exec_date := SYSDATE;
+					ELSE
+						--Ha alegado previamente
+						:NEW.status := 'U';
+						END IF;
+					END IF;
+
+		END ;
+		/
 
 ---------- Insertar un ticket
 --INSERT INTO TICKETS VALUES ('8489EAU','04/11/10 18:48:01,020000', 'S', NULL, NULL, SYSDATE, NULL, NULL, '30','97201505D','R');
@@ -114,16 +140,20 @@ BEFORE INSERT on ALLEGATIONS
 			------ Alegación en la que el nuevo deudor no es conductor
 --INSERT INTO ALLEGATIONS VALUES('8489EAU', '04/11/10 18:48:01,020000', 'S', SYSDATE, '50774649X', 'U', NULL);
 
-		------ Alegación en la que el nuevo deudor no es conductor
+		------ Alegación en la que el nuevo deudor es conductor
 --INSERT INTO ASSIGNMENTS VALUES ('22117400W', '9861AUO');
 --INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '22117400W', 'U', NULL);
+--INSERT INTO ASSIGNMENTS VALUES ('97201505D', '9861AUO');
+--INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '97201505D', 'U', NULL);
 
+    ------ Alegación en la que el nuevo deudor es conductor pero ya ha alegado previamente
+--INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '22117400W', 'U', NULL);
 
 --------------------------------- TRIGGER C----------------------------------------
 ---------- Nuevo conductor habitual cuando el actual fallece para que el atributo no se quede a nulo
 
 CREATE OR REPLACE TRIGGER aReyMuerto
-BEFRORE UPDATE OF REG_DRIVER on VEHICLES
+BEFRORE UPDATE OF REG_DRIVER ON VEHICLES
 	DECLARE
 		IF re
 
@@ -144,22 +174,21 @@ BEFRORE UPDATE OF REG_DRIVER on VEHICLES
 -- TRIGGER CONTROL DE LA VELOCIDAD DE LOS RADARES
 
 CREATE OR REPLACE TRIGGER NoInsertesRadar
-	BEFORE INSERT ON RADARS
+	BEFORE INSERT OR UPDATE ON RADARS
 		FOR EACH ROW
+
 			DECLARE
 			speedRadar NUMBER;
 			speedRoad NUMBER;
-			velocidad_inadecuada EXCEPTION;
+
 			BEGIN
-				speedRadar := :NEW.speedlim;
-				select speed_limit into speedRoad from ROADS where name= :NEW.road;
+					speedRadar := :NEW.speedlim;
+					select speed_limit into speedRoad from ROADS where name= :NEW.road;
 				IF speedRadar >= speedRoad THEN
-					RAISE velocidad_inadecuada;
-				END IF;
-			EXCEPTION
-   			WHEN velocidad_inadecuada THEN
 					RAISE_APPLICATION_ERROR(-20001, 'La velocidad del radar debe ser inferior a la general');
-		END;
+				END IF;
+
+			END;
 /
 -------------------Velocidad adecuada ---------------------
 --INSERT INTO RADARS VALUES ('A4','0','ASC','0');
@@ -172,27 +201,25 @@ CREATE OR REPLACE TRIGGER NoInsertesRadar
 CREATE OR REPLACE TRIGGER NoInsertesConductor
 	BEFORE INSERT ON DRIVERS
 	FOR EACH ROW
+
 		DECLARE
 		cumple DATE;
 		edad number;
-		edad_inadecuada EXCEPTION;
+
 		BEGIN
 				select birthdate into cumple from persons where DNI = :NEW.dni;
 				edad := TRUNC(MONTHS_BETWEEN(SYSDATE, cumple))/12;
-				IF edad < 18 THEN
-					RAISE edad_inadecuada;
-				END IF;
 
-				EXCEPTION
-	   			WHEN edad_inadecuada THEN
-						RAISE_APPLICATION_ERROR(-20002, 'La edad del conductor debe ser superior a 18 años');
+				IF edad < 18 THEN
+					RAISE_APPLICATION_ERROR(-20002, 'La edad del conductor debe ser superior a 18 años');
+				END IF;
 	END;
 /
 
--------------- Menor de edad ----------------------
+-------------- Mayor de edad ----------------------
 --INSERT INTO PERSONS VALUES('1', 'Pablito', 'apellido1', 'apellido2', 'dir', 'ciudad', '123', 'blabla@bla','16/04/00');
 --INSERT INTO DRIVERS VALUES ('1', '16/04/00', 'A');
 
--------------- Mayor de edad ----------------------
---INSERT INTO PERSONS VALUES('2', 'Isabella', 'apellido1', 'apellido2', 'dir', 'ciudad', '123', 'blabla@bla','14/04/00');
+-------------- Menor de edad ----------------------
+--INSERT INTO PERSONS VALUES('2', 'Isabella', 'apellido1', 'apellido2', 'dir', 'ciudad', '123', 'blabla@bla','14/04/08');
 --INSERT INTO DRIVERS VALUES ('2', '16/04/00', 'A');
