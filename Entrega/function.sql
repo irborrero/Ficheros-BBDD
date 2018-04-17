@@ -74,12 +74,11 @@ CREATE OR REPLACE TYPE OBSERVACION
 								----- escogemos la velocidad del radar asociado a la observacion actual
 								select speedlim into velocidadLim from RADARS where road = obs1.road and Km_point = obs1.km_point and direction = obs1.direction;
 							--- calculamos la distancia entre los radares
-							distancia := ABS(obs2.Km_point - obs1.km_point);
+							distancia := ABS(obs1.Km_point - obs2.km_point);
 							--- calculamos el tiempo que ha transcurrido entre las observaciones
 						  tiempoTramo := ABS((extract(hour from obs2.odatetime)-extract(hour from tiempo1))*3600+ (extract(minute from obs2.odatetime)-extract(minute from tiempo1))*60+ (extract(second from obs2.odatetime)-extract(second from tiempo1))*1000);
 							--- calculamos la velocidad a la que ha ido el coche de media con los parametros calculados previamente
-							velocidadMed := (distancia/(tiempoTramo/(3600*1000)));
-
+							velocidadMed := (distancia/(tiempoTramo/(3600)));
 							---- si la distancia es mayor que 5 entre las observaciones entonces hemos de tener en cuenta la restricción del radar y la velocidad general de la carretera
 							IF distancia > 5 THEN
 								velocidadLim := (5*velocidadLim + (distancia-5)*velocidadGeneral)*1/distancia;
