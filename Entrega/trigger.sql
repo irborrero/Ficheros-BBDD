@@ -41,8 +41,6 @@ CREATE OR REPLACE TYPE OBSERVACION
 				amountVelTramo := paquete.calculoVelTramo(obsInsertada.nPlate, obsAnterior.odatetime, obsInsertada.odatetime);
 				amountDist := paquete.calculoSancionDistancia(obsInsertada.nPlate, obsInsertada.odatetime);
 
-				DBMS_OUTPUT.PUT_LINE(amountVelMax || '-' || amountVelTramo||'-'||amountDist);
-
 				select owner into dueno from vehicles where nPlate = obsInsertada.nPlate;
 
 					--r: registrada
@@ -53,19 +51,16 @@ CREATE OR REPLACE TYPE OBSERVACION
 
 				IF amountVelMax > 0
 				THEN
-				DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Max...');
 				INSERT INTO TICKETS VALUES(obsInsertada.nPlate,obsInsertada.odatetime,'S',NULL,NULL,SYSDATE,NULL,NULL,amountVelMax,dueno, 'R');
 				END IF;
 
 				IF amountvelTramo > 0
 				THEN
-				DBMS_OUTPUT.PUT_LINE('Insertando ticket por Vel Tramo...');
 				INSERT INTO TICKETS VALUES(obsInsertada.nPlate,obsAnterior.odatetime,'T',obsInsertada.nPlate,obsInsertada.odatetime,SYSDATE,NULL,NULL,amountVelTramo,dueno, 'R');
 				END IF;
 
 				IF amountDist > 0
 				THEN
-				DBMS_OUTPUT.PUT_LINE('Insertando ticket por distancia...');
 				INSERT INTO TICKETS VALUES(obsInsertada.nPlate,obsInsertada.odatetime,'D',obsCocheAnterior.nPlate,obsCocheAnterior.odatetime,SYSDATE,NULL,NULL,amountDist,dueno, 'R');
 				END IF;
 
@@ -75,60 +70,4 @@ END InsertarMulta;
 
 /
 
---------------------------------- TRIGGER B----------------------------------------
----------- Si el nuevo deudor no es conductor asignado
---- trigger a falta de revisión
-
-CREATE OR REPLACE TYPE ALEGACION
-	AS OBJECT(
-		obs_veh    VARCHAR2(7),
-    obs_date   TIMESTAMP,
-    tik_type   VARCHAR2(9),
-    reg_date   DATE,
-    new_debtor VARCHAR2(9),
-    status     VARCHAR2(1),
-    exec_date  DATE
-		)
-   /
-
-	CREATE OR REPLACE TRIGGER ProcesarAlegacion
-	 BEFORE INSERT on ALLEGATIONS
-			FOR EACH ROW
-			DECLARE
-				alegacionInsertada ALEGACION;
-				c1 NUMBER;
-				c2 NUMBER;
-
-			BEGIN
-				alegacionInsertada := ALEGACION(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-				alegacionInsertada.new_debtor := :NEW.new_debtor;
-				alegacionInsertada.obs_veh := :NEW.obs_veh;
-				alegacionInsertada.obs_date := :NEW.obs_date;
-				alegacionInsertada.tik_type := :NEW.tik_type;
-				alegacionInsertada.reg_date := :NEW.reg_date;
-
-				select count(*) into c1 from assignments where driver = alegacionInsertada.new_debtor and nPlate = alegacionInsertada.obs_veh;
-				--select debtor into deudor from tickets where obs1_veh = :NEW.obs_veh and obs1_date =:NEW.obs_date and tik_type= :NEW.tik_type;
-				select count(*) into c2 from allegations where obs_veh = alegacionInsertada.obs_veh and obs_date = alegacionInsertada.obs_date and tik_type = alegacionInsertada.tik_type and new_debtor = alegacionInsertada.new_debtor;
-
-				DBMS_OUTPUT.PUT_LINE(c1 || '-' || c2);
-
-				IF c1 = 0 THEN
-				-- El nuevo deudor no es conductor del coche
-					:NEW.status := 'R';
-					:NEW.exec_date := SYSDATE;
-
-				ELSE
-				---- Vemos si el nuevo deudor ya ha podido alegar esa multa
-					IF c2 = 0 THEN
-							--No ha alegado esa multa previamente
-							:NEW.status := 'A';
-							:NEW.exec_date := SYSDATE;
-					ELSE
-						--Ha alegado previamente
-						:NEW.status := 'U';
-						END IF;
-					END IF;
-
-		END ;
-		/
+-------------------------------- OPCIONAL--------------------------------- 
