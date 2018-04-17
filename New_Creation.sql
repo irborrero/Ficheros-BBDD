@@ -1,4 +1,4 @@
--- ----------------------------------------------------
+s-- ----------------------------------------------------
 -- ----------------------------------------------------
 -- -- TABLES CREATION SCRIPT -- ASSIGNMENT SOLUTION ---
 -- ----------------------------------------------------
@@ -29,7 +29,7 @@ DROP TABLE ALLEGATIONS CASCADE CONSTRAINTS;
 CREATE TABLE CATALOG (
    make     VARCHAR2(10),
    model    VARCHAR2(12),
-   power    NUMBER(6) NOT NULL,	
+   power    NUMBER(6) NOT NULL,
    CONSTRAINT PK_CATALOG PRIMARY KEY (make, model)
 );
 
@@ -45,6 +45,8 @@ CREATE TABLE PERSONS(
    birthdate DATE NOT NULL,
    CONSTRAINT PK_PERSONS PRIMARY KEY (DNI)
 );
+
+s
 
 CREATE TABLE DRIVERS(
    DNI       VARCHAR2(9),
@@ -83,9 +85,9 @@ CREATE TABLE VEHICLES(
    CONSTRAINT PK_VEHICLES PRIMARY KEY (nPlate),
    CONSTRAINT UK_VEHICLES UNIQUE (vin),
    CONSTRAINT FK_VEHICLES1 FOREIGN KEY (make, model) REFERENCES CATALOG,
-   CONSTRAINT FK_VEHICLES2 FOREIGN KEY (owner) REFERENCES PERSONS,
+   CONSTRAINT FK_VEHICLES2 FOREIGN KEY (owner) REFERENCES PERSONS ON DELETE SET NULL,
    CONSTRAINT FK_VEHICLES3 FOREIGN KEY (reg_driver) REFERENCES DRIVERS,
-   CONSTRAINT CK_VEHICLES CHECK (reg_date<=MOT_date)	
+   CONSTRAINT CK_VEHICLES CHECK (reg_date<=MOT_date)
 );
 
 -- IF you decide to implement trigger 'king-is-dead', you should change integrity rule
@@ -114,6 +116,8 @@ CREATE TABLE OBSERVATIONS(
    CONSTRAINT FK_OBSERVATIONS2 FOREIGN KEY (nPlate) REFERENCES VEHICLES (nPlate) ON DELETE CASCADE
 );
 
+--INSERT INTO observations VALUES ('0619IEO', '16/04/18 07:03:07,000000', 'M45', '20', 'DES', 80);
+
 CREATE TABLE TICKETS(
    obs1_veh   VARCHAR2(7),
    obs1_date  TIMESTAMP,
@@ -133,13 +137,13 @@ CREATE TABLE TICKETS(
    CONSTRAINT CK_TICKETS1 CHECK (state IN ('R','I','E','F','N')),
    CONSTRAINT CK_TICKETS2 CHECK (pay_type IN ('B','T','C')),
    CONSTRAINT CK_TICKETS3 CHECK (tik_type IN ('S','T','D')),
-   CONSTRAINT CK_TICKETS4 CHECK ((tik_type='S' AND obs2_veh IS NULL AND obs2_date IS NULL) OR 
+   CONSTRAINT CK_TICKETS4 CHECK ((tik_type='S' AND obs2_veh IS NULL AND obs2_date IS NULL) OR
                                  (tik_type!='S' AND obs2_veh IS NOT NULL AND obs2_date IS NOT NULL)),
    CONSTRAINT CK_TICKETS5 CHECK (tik_type!='T' OR obs1_veh=obs2_veh),
    CONSTRAINT CK_TICKETS6 CHECK (tik_type!='D' OR obs1_veh!=obs2_veh),
-   CONSTRAINT CK_TICKETS7 CHECK ((state='F' AND pay_date IS NOT NULL AND pay_type IS NOT NULL) OR 
+   CONSTRAINT CK_TICKETS7 CHECK ((state='F' AND pay_date IS NOT NULL AND pay_type IS NOT NULL) OR
                                  (state!='F' AND pay_date IS NULL AND pay_type IS NULL))
-); 
+);
 
 CREATE TABLE ALLEGATIONS(
    obs_veh    VARCHAR2(7),
@@ -150,9 +154,9 @@ CREATE TABLE ALLEGATIONS(
    status     VARCHAR2(1) DEFAULT('U') NOT NULL,
    exec_date  DATE,
    CONSTRAINT PK_ALLEGATIONS PRIMARY KEY (obs_veh,obs_date,tik_type,reg_date),
-   CONSTRAINT FK_ALLEGATIONS1 FOREIGN KEY (obs_veh,obs_date,tik_type) REFERENCES TICKETS, 
+   CONSTRAINT FK_ALLEGATIONS1 FOREIGN KEY (obs_veh,obs_date,tik_type) REFERENCES TICKETS,
    CONSTRAINT FK_ALLEGATIONS2 FOREIGN KEY (new_debtor) REFERENCES PERSONS,
    CONSTRAINT CK_ALLEGATIONS CHECK (status IN ('A','R','U')),
    CONSTRAINT CK_ALLEGATIONS2 CHECK ((status!='U' AND exec_date IS NOT NULL) OR
                                      (status='U' AND exec_date IS NULL))
-); 
+);
