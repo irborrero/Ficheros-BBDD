@@ -70,4 +70,43 @@ END InsertarMulta;
 
 /
 
--------------------------------- OPCIONAL--------------------------------- 
+-------------------------------- OPCIONAL---------------------------------
+-------------- RESTRICCIONES d)
+
+-- TRIGGER CONTROL DE LA VELOCIDAD DE LOS RADARES
+
+CREATE OR REPLACE TRIGGER NoInsertesRadar
+	BEFORE INSERT OR UPDATE ON RADARS
+		FOR EACH ROW
+
+			DECLARE
+			speedRadar NUMBER;
+			speedRoad NUMBER;
+
+			BEGIN
+					speedRadar := :NEW.speedlim;
+					select speed_limit into speedRoad from ROADS where name= :NEW.road;
+				IF speedRadar >= speedRoad THEN
+					RAISE_APPLICATION_ERROR(-20001, 'La velocidad del radar debe ser inferior a la general');
+				END IF;
+
+			END;
+/
+
+CREATE OR REPLACE TRIGGER NoInsertesConductor
+	BEFORE INSERT ON DRIVERS
+	FOR EACH ROW
+
+		DECLARE
+		cumple DATE;
+		edad number;
+
+		BEGIN
+				select birthdate into cumple from persons where DNI = :NEW.dni;
+				edad := TRUNC(MONTHS_BETWEEN(SYSDATE, cumple))/12;
+
+				IF edad < 18 THEN
+					RAISE_APPLICATION_ERROR(-20002, 'La edad del conductor debe ser superior a 18 años');
+				END IF;
+	END;
+/
