@@ -25,10 +25,14 @@ SELECT nPlate, odatetime, speed_limit - speed as diferencia from ROADS R INNER J
         END AS FINAL, SPEEDLIM FROM
         (SELECT km_point, LEAD(KM_POINT, 1, KM_POINT +5) OVER (PARTITION BY ROAD ORDER BY KM_POINT) AS FINAl, ROAD, DIRECTION, SPEEDLIM FROM RADARS WHERE direction='ASC'
         UNION ALL
-        SELECT KM_POINT,LEAD(KM_POINT, 1, KM_POINT -5) OVER (PARTITION BY ROAD ORDER BY km_point DESC) AS FINAL, ROAD, DIRECTION, SPEEDLIM FROM RADARS WHERE direction='DES');
+        SELECT KM_POINT,
+        CASE
+        WHEN (LEAD(KM_POINT, 1, KM_POINT -5) OVER (PARTITION BY ROAD ORDER BY km_point DESC)<0) THEN 0
+        ELSE LEAD(KM_POINT, 1, KM_POINT -5) OVER (PARTITION BY ROAD ORDER BY km_point DESC)
+        END AS FINAL, ROAD, DIRECTION, SPEEDLIM FROM RADARS WHERE direction='DES')
+        VISTA INNER JOIN ROADS R ON R.NAME= VISTA.ROAD WHERE VISTA.SPEEDLIM < R.speed_limit;
 
 
-
+-- INSERT INTO RADARS VALUES ('M50', '3', 'DES', 100);
 --- cosas que faltan por controlar
     --KM de final de descendentres : -2
-    -- que la velocidad de los tramos sea inferior a la de la carretera general
