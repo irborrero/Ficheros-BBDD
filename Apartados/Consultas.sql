@@ -12,19 +12,18 @@ select ROAD, (MAX(speed_limit)*(2*max(finalmax)-sum(distTramo)) + sum(velTramo) 
 
 -------------------------Consulta 3: dueños que no son conductores habituales
 
---INSERT INTO ASSIGNMENTS values ('78455829T', '5862IOU');
---INSERT INTO ASSIGNMENTS values ('33254360V', '5862IOU');
-SELECT DISTINCT DRIVER FROM (
-  SELECT * FROM assignments UNION SELECT reg_driver, nplate FROM vehicles
-   MINUS Select owner, nplate FROM vehicles);
 
+SELECT DISTINCT OWNER FROM (SELECT OWNER, NPLATE FROM VEHICLES MINUS SELECT REG_DRIVER, NPLATE FROM VEHICLES MINUS SELECT DRIVER, NPLATE FROM ASSIGNMENTS);
    ---------- CON LA TABLA TAL CUAL NOS LA DA LA PROFE
-   --107 ROWS SELECTED (son dueños que no son conductores habituales con un total de 197 dueños distintos)
+   --97 ROWS SELECTED (son dueños que no son conductores habituales)
    ---------- PRUEBAS QUE HEMOS HECHO NOSOTROS
-    -- COCHE: '5862IOU' -- DUEÑO: 78455829T -- CONDUCTOR HABITUAL: 36071957E
-    --INSERT INTO ASSIGNMENTS values ('78455829T', '5862IOU');
-    --(insertamos el dueño como conductor no habitual)
- select count(*)coches,driver from (select driver, nplate from assignments UNION select reg_driver, nplate from vehicles MINUS select owner, nplate from vehicles)group by driver having count(*)>=3;
+   --Escogemos un dueño que solo tenga un vehículo y le asignamos como conductor no habitual
+    --insert into assignments values('49078455C', '9959UOU');
+    --Ahora el resutlado es 96 rows selected
+
+
+
+     select count(*)coches,driver from (select driver, nplate from assignments UNION select reg_driver, nplate from vehicles MINUS select owner, nplate from vehicles)group by driver having count(*)>=3;
 
 
 -------------------------Consulta 4
