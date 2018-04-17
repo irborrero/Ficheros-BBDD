@@ -128,16 +128,23 @@ CREATE OR REPLACE TYPE OBSERVACION
 						END;
 
 						------------- FUNCION 4 --------------------------------
+						---- en las funciones 4 y 5 usamos el tipo observacion adjuntado al principio
 						FUNCTION ObservacionAnterior(matricula IN VARCHAR2, tiempo IN TIMESTAMP) RETURN OBSERVACION
 						  IS
+									-- observacion devuelta
 						       obsAnterior OBSERVACION;
+									-- observacion con la que trabajaremos
 									 obs1 OBSERVATIONS%ROWTYPE;
 
 						    BEGIN
+								--- inicializamos la observacion anterior
 									obsAnterior := OBSERVACION(NULL, NULL, NULL, NULL, NULL, NULL);
+									--- seleccionamos el radar asociado a la observacion
 									select road, km_point, direction into obs1.road, obs1.km_point, obs1.direction from OBSERVATIONS where nPlate = matricula and odatetime = tiempo;
+									--- con dicho radar encontramos la observacion inmediatamente anterior
 									select  max(odatetime) into obsAnterior.odatetime from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < tiempo;
-						      select  nPlate, road, km_point, direction, speed into  obsAnterior.nPlate, obsAnterior.road, obsAnterior.km_point, obsAnterior.direction, obsAnterior.speed from OBSERVATIONS where odatetime = obsAnterior.odatetime and road= obs1.road and km_point=obs1.km_point and direction= obs1.direction;
+									--- rellenamos todos los datos propios de la observacion anterior
+									select  nPlate, road, km_point, direction, speed into  obsAnterior.nPlate, obsAnterior.road, obsAnterior.km_point, obsAnterior.direction, obsAnterior.speed from OBSERVATIONS where odatetime = obsAnterior.odatetime and road= obs1.road and km_point=obs1.km_point and direction= obs1.direction;
 
 						  	RETURN obsAnterior;
 						END;
