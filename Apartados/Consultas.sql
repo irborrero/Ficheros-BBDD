@@ -1,8 +1,18 @@
 --------------------------Consulta 1
 SELECT nPlate, repeticiones FROM (SELECT count(nPlate) repeticiones, nPlate FROM observations GROUP BY nPlate ORDER BY repeticiones DESC) WHERE rownum <=10;
-
+--- Esta vista está mal, la correcta está en la memoria
 
 --------------------------Consulta 2: falta supuestamente la velocidad promedia
+
+ --Tramos: tabla que registra cada tramo de carretera en el que la velocidad es inferior a la velocidad general de la vía (contiene la identificación de la vía, puntos de inicio y fin, y límite de velocidad en el tramo).
+
+SELECT road, km_point
+
+  CASE (km_point + 5 < siguiente_radar) THEN
+
+  END km_final, speedlim
+
+  FROM RADARS A JOIN ROADS B ON A.road= B.name;
 SELECT name,speed_limit FROM ROADS ORDER BY speed_limit DESC, name;
 
 
