@@ -115,10 +115,9 @@ CREATE OR REPLACE TYPE OBSERVACION
 										--- calculamos el lapso de tiempo entre los dos coches
 										tiempoLapso := (extract(hour from obs1.odatetime)-extract(hour from tiempoCocheDelante))*3600000+ (extract(minute from obs1.odatetime)-extract(minute from tiempoCocheDelante))*60000+ (extract(second from obs1.odatetime)-extract(second from tiempoCocheDelante))*1000;
 										--- dicho lapso de tiempo lo redondeamos a la centésima
-										tiempoLapso := (round(tiempoLapso/100))*100;
+										tiempoLapso := (round(tiempoLapso/100))*10;
 											--- calculamos la cuantía en fucnión del tiempo de lapso
-					    				cuantia := (3.6 - tiempoLapso/1000)*100*10;
-
+					    				cuantia := (3.6 - tiempoLapso/100)*100*10;
 											--- si la cuantia es negativa el coche va más alejado del limite sancionable
 					    					IF cuantia < 0 THEN
 												--- por lo que la cuantía es 0
