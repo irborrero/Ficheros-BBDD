@@ -21,9 +21,9 @@ SELECT DISTINCT OWNER FROM (
   MINUS SELECT DRIVER, NPLATE FROM ASSIGNMENTS);
 
 --------------- 4
-SELECT count(*) coches, dueno FROM ((SELECT DISTINCT owner as dueno FROM ((SELECT owner, nPlate FROM vehicles )
-MINUS (SELECT reg_driver, nPlate  FROM vehicles) MINUS (SELECT * from ASSIGNMENTS))) A
-INNER JOIN (SELECT owner, nPlate FROM vehicles) B ON A.dueno = B.owner ) GROUP BY dueno HAVING count(*)>=3;
+SELECT dueno as jefazo from (SELECT count(*) coches, dueno FROM ((SELECT DISTINCT owner as dueno FROM ((SELECT owner FROM vehicles )
+MINUS (SELECT reg_driver FROM vehicles) MINUS (SELECT DRIVER from ASSIGNMENTS))) A
+INNER JOIN (SELECT owner FROM vehicles) B ON A.dueno = B.owner ) GROUP BY dueno HAVING count(*)>=3);
 
  --------- 5
 
@@ -35,4 +35,3 @@ INSERT into OBSERVATIONS values('9855AIE','19/03/18 03:43:33,010000','M45',10,'A
 INSERT into OBSERVATIONS values('9855AIE','19/03/17 03:43:33,010000','M45',10,'ASC',150);
 INSERT into TICKETS values('9855AIE','19/03/18 03:43:33,010000','S',NULL,NULL,SYSDATE,NULL,NULL,1000,'36071957E','R');
 INSERT into TICKETS values('9855AIE','19/03/17 03:43:33,010000','S',NULL,NULL,SYSDATE,NULL,NULL,500,'36071957E','R');
-
