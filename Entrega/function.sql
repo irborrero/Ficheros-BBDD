@@ -152,12 +152,15 @@ CREATE OR REPLACE TYPE OBSERVACION
 						------------- FUNCION 5 --------------------------------
 						FUNCTION ObservacionCocheAnterior(matricula IN VARCHAR2, tiempo IN TIMESTAMP) RETURN OBSERVACION
 							IS
+									--- observacion devuelta
 									 obsAnterior OBSERVACION;
-									 obs1 OBSERVATIONS%ROWTYPE;
 
 								BEGIN
+									-- inicializamos la observacion anterior
 									obsAnterior := OBSERVACION(NULL, NULL, NULL, NULL, NULL, NULL);
+									-- seleccionamos la observacion inmediatamente anterior a ese vehículo
 									select  max(odatetime) into obsAnterior.odatetime from OBSERVATIONS where odatetime < tiempo and nPlate=matricula;
+									-- rellenamos todos los datos propios de la observacion anterior
 									select  nPlate, road, km_point, direction, speed into obsAnterior.nPlate, obsAnterior.road, obsAnterior.km_point, obsAnterior.direction, obsAnterior.speed from OBSERVATIONS where odatetime = obsAnterior.odatetime and nPlate=matricula;
 
 								RETURN obsAnterior;
