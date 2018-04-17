@@ -96,26 +96,32 @@ CREATE OR REPLACE TYPE OBSERVACION
 							RETURN cuantia;
 					END;
 
-						-- SELECT paquete.CALCULOVELTRAMO('0583EAA','23/10/11 15:54:29,300000') from dual;
+
 
 					------------- FUNCION 3 --------------------------------
 					FUNCTION calculoSancionDistancia(matricula IN VARCHAR2, tiempo1 IN TIMESTAMP) RETURN NUMBER
 						IS
-					       cuantia VARCHAR2(200);
-					       tiempoLapso NUMBER(10);
+					       cuantia NUMBER;
+					       tiempoLapso NUMBER;
 					       tiempoCocheDelante TIMESTAMP;
 					       obs1 OBSERVATIONS%ROWTYPE;
 
 					    BEGIN
+								---- seleccionamos los atributos que vamos a necesitar sobre la observacion insertada como parametro
 					    	select road, km_point, direction, speed, odatetime into obs1.road, obs1.km_point, obs1.direction, obs1.speed , obs1.odatetime from OBSERVATIONS where nPlate = matricula and odatetime = tiempo1;
-					    	select max(odatetime) into tiempoCocheDelante from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < obs1.odatetime;
+								--- seleccionamos el tiempo en el que el coche delantero paso por el mismo radar que la observacion insertada como parametro
+								select max(odatetime) into tiempoCocheDelante from OBSERVATIONS where road = obs1.road and km_point = obs1.km_point and direction = obs1.direction and odatetime < obs1.odatetime;
 
+										--- calculamos el lapso de tiempo entre los dos coches
 										tiempoLapso := (extract(hour from obs1.odatetime)-extract(hour from tiempoCocheDelante))*3600000+ (extract(minute from obs1.odatetime)-extract(minute from tiempoCocheDelante))*60000+ (extract(second from obs1.odatetime)-extract(second from tiempoCocheDelante))*1000;
-					    			tiempoLapso := (round(tiempoLapso/100))*100;
-
+										--- dicho lapso de tiempo lo redondeamos a la centésima
+										tiempoLapso := (round(tiempoLapso/100))*100;
+											--- calculamos la cuantía en fucnión del tiempo de lapso
 					    				cuantia := (3.6 - tiempoLapso/1000)*100*10;
 
+											--- si la cuantia es negativa el coche va más alejado del limite sancionable
 					    					IF cuantia < 0 THEN
+												--- por lo que la cuantía es 0
 					    						cuantia := 0;
 					    						END IF;
 
