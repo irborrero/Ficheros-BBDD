@@ -22,10 +22,10 @@
 ------------------ VISTAS OPCIONALES
 
 -- A) NUEVA MULTA
---CREATE VIEW NuevaMulta AS
-  --SELECT nPlate, odatetime, speed_limit - speed as diferencia from ROADS R INNER JOIN OBSERVATIONS O
-    --ON R.name=O.road
-    --  WHERE R.speed_limit/2 > O.speed;
+CREATE VIEW NuevaMulta AS
+  SELECT nPlate, odatetime, speed_limit - speed as diferencia from ROADS R INNER JOIN OBSERVATIONS O
+    ON R.name=O.road
+    WHERE R.speed_limit/2 > O.speed;
 
 -- B) PROTESTON
 --CREATE VIEW Proteston AS
