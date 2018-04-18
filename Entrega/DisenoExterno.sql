@@ -3,22 +3,21 @@
 
 ---- Vista conductores con atributos de persona
 CREATE VIEW Conductores AS
-SELECT name, surn_1, surn_2, address, town, mobile, email, birthdate FROM
+SELECT distinct P.DNI, name, surn_1, surn_2, address, town, mobile, email, birthdate FROM
 DRIVERS D INNER JOIN PERSONS P ON D.DNI= P.DNI;
 
 ---- Dueños con atributo de persona
 CREATE VIEW Duenos AS
-SELECT DISTINCT name, surn_1, surn_2, address, town, mobile, email, birthdate FROM
+SELECT DISTINCT DNI, name, surn_1, surn_2, address, town, mobile, email, birthdate FROM
 VEHICLES V INNER JOIN PERSONS P ON V.OWNER= P.DNI;
 
 ---- Asignaciones
----not working
 CREATE VIEW Asignaciones AS
-SELECT driver as conductor,
+SELECT driver as conductor, V.nplate as matricula,
 CASE
- WHEN (driver like (SELECT reg_driver from vehicles where nplate = NPLATE)) THEN 'SI'
+ WHEN (A.driver = V.REG_DRIVER and A.nPlate = V.nPlate) THEN 'SI'
  ELSE 'NO'
-END AS cond_habitual, nplate as matricula FROM ASSIGNMENTS A INNER JOIN VEHICLES V ON V.nPlate = A.nPlate;
+END AS cond_habitual FROM ASSIGNMENTS A INNER JOIN VEHICLES V ON V.nPlate = A.nPlate;
 
 ---- Bonachon
 
@@ -30,7 +29,13 @@ SELECT dni FROM PERSONS MINUS SELECT new_debtor FROM ALLEGATIONS;
 
 --- Vista de sanciones impagadas
 CREATE VIEW SancionesImpagadas AS
- SELECT amount , tik_type FROM tickets where state like 'N';
+ SELECT AMOUNT,PENALIZACION, (AMOUNT + PENALIZACION) AS TOTAL FROM(
+ SELECT amount, 
+ CASE
+ WHEN (SYSDATE > PAY_DATE) THEN AMOUNT
+ ELSE 0
+ END AS PENALIZACION
+ FROM tickets where state like 'N');
 
 -- Vista de el vehiculo con contacto
 CREATE VIEW Notificacion AS
