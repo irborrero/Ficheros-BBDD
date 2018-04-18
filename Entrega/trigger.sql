@@ -104,7 +104,6 @@ CREATE OR REPLACE TYPE ALEGACION
 				alegacionInsertada.reg_date := :NEW.reg_date;
 
 				select count(*) into c1 from assignments where driver = alegacionInsertada.new_debtor and nPlate = alegacionInsertada.obs_veh;
-				--select debtor into deudor from tickets where obs1_veh = :NEW.obs_veh and obs1_date =:NEW.obs_date and tik_type= :NEW.tik_type;
 				select count(*) into c2 from allegations where obs_veh = alegacionInsertada.obs_veh and obs_date = alegacionInsertada.obs_date and tik_type = alegacionInsertada.tik_type and new_debtor = alegacionInsertada.new_debtor;
 
 				DBMS_OUTPUT.PUT_LINE(c1 || '-' || c2);
@@ -128,7 +127,7 @@ CREATE OR REPLACE TYPE ALEGACION
 
 		END ;
 		/
-		
+
 -------------- RESTRICCIONES d)
 
 -- TRIGGER CONTROL DE LA VELOCIDAD DE LOS RADARES
