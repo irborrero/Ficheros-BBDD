@@ -30,11 +30,3 @@ INNER JOIN (SELECT owner FROM vehicles) B ON A.dueno = B.owner ) GROUP BY dueno 
 select DISTINCT (Select sum(amount) as suma from tickets Where obs1_date between add_months(trunc(sysdate,'mm'),-1) and last_day(add_months(trunc(sysdate,'mm'),-1))
 ) - (SELECT sum(amount) as suma_anterior from tickets where obs1_date between add_months(SYSDATE, -14) and
 last_day(add_months(SYSDATE, -13))) as diferencia FROM tickets;
-
-INSERT into OBSERVATIONS values('9855AIE','19/03/18 03:43:33,010000','M45',10,'ASC',150);
-INSERT into OBSERVATIONS values('9855AIE','19/03/17 03:43:33,010000','M45',10,'ASC',150);
-INSERT into TICKETS values('9855AIE','19/03/18 03:43:33,010000','S',NULL,NULL,SYSDATE,NULL,NULL,1000,'36071957E','R');
-INSERT into TICKETS values('9855AIE','19/03/17 03:43:33,010000','S',NULL,NULL,SYSDATE,NULL,NULL,500,'36071957E','R');
-
-
------------------------------------------ FUNCIONES ---------------------------------------------------------------------
