@@ -30,20 +30,5 @@ CREATE VIEW NuevaMulta AS
 -- B) PROTESTON
 CREATE VIEW Proteston AS
 SELECT MAX(PROTESTON)KEEP(DENSE_RANK FIRST ORDER BY CUENTA DESC) AS PROTESTON, ltrim(TO_CHAR(FECHA, 'mm-yyyy'),0) AS FECHA FROM (
-    SELECT new_debtor as proteston, count (*) cuenta, trunc(exec_date) AS FECHA from allegations where status like 'R' 
+    SELECT new_debtor as proteston, count (*) cuenta, trunc(exec_date) AS FECHA from allegations where status like 'R'
         GROUP BY trunc(exec_date), new_debtor ORDER BY count(*) DESC) GROUP BY FECHA;
-
-
-
-INSERT INTO TICKETS VALUES ('9861AUO','13/01/11 05:57:33,510000', 'S', NULL, NULL, SYSDATE, NULL, NULL, '30','76150280V','R');
-
-INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '22117400W', 'R', SYSDATE);
-INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '97201505D', 'R', SYSDATE);
-
-INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '22117400W', 'R', '13/12/10 05:57:33,510000');
-
-INSERT INTO ALLEGATIONS VALUES('9861AUO', '13/01/11 05:57:33,510000', 'S', SYSDATE, '22117400W', 'R', SYSDATE);
-
-
-SELECT new_debtor as proteston, count (*) cuenta, trunc(exec_date) AS FECHA from allegations where status like 'R' 
-    GROUP BY trunc(exec_date), new_debtor ORDER BY count(*) DESC)
