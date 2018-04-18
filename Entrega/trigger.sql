@@ -106,7 +106,6 @@ CREATE OR REPLACE TYPE ALEGACION
 				select count(*) into c1 from assignments where driver = alegacionInsertada.new_debtor and nPlate = alegacionInsertada.obs_veh;
 				select count(*) into c2 from allegations where obs_veh = alegacionInsertada.obs_veh and obs_date = alegacionInsertada.obs_date and tik_type = alegacionInsertada.tik_type and new_debtor = alegacionInsertada.new_debtor;
 
-				DBMS_OUTPUT.PUT_LINE(c1 || '-' || c2);
 
 				IF c1 = 0 THEN
 				-- El nuevo deudor no es conductor del coche
